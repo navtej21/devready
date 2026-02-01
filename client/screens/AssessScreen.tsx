@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ScrollView, StyleSheet, Alert, Platform } from "react-native";
+import { View, ScrollView, StyleSheet, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -7,6 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as DocumentPicker from "expo-document-picker";
 import * as Haptics from "expo-haptics";
+import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
@@ -14,12 +15,21 @@ import { Card } from "@/components/Card";
 import { UploadArea } from "@/components/UploadArea";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, Colors } from "@/constants/theme";
+import { Spacing, Colors, BorderRadius } from "@/constants/theme";
 import { apiRequest } from "@/lib/query-client";
 import { saveAssessment, type Assessment } from "@/lib/storage";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const EVALUATION_CATEGORIES = [
+  { name: "Programming Languages", icon: "code" as const },
+  { name: "Database Skills", icon: "database" as const },
+  { name: "API Design", icon: "git-branch" as const },
+  { name: "DevOps & Cloud", icon: "cloud" as const },
+  { name: "System Design", icon: "layers" as const },
+  { name: "Professional Experience", icon: "briefcase" as const },
+];
 
 export default function AssessScreen() {
   const insets = useSafeAreaInsets();
@@ -85,6 +95,8 @@ export default function AssessScreen() {
         actions: data.actions,
         resumeName: selectedFile.name,
         createdAt: new Date().toISOString(),
+        categories: data.categories,
+        scoringMethodology: data.scoringMethodology,
       };
 
       await saveAssessment(assessment);
@@ -125,28 +137,27 @@ export default function AssessScreen() {
               type="small"
               style={[styles.instructionsText, { color: theme.textSecondary }]}
             >
-              Upload your resume to receive a personalized readiness score. We'll analyze your experience, skills, and projects against industry expectations for backend developer roles.
+              Upload your resume to receive a transparent readiness assessment. We'll analyze your profile against industry expectations and show you exactly how each skill area contributes to your score.
             </ThemedText>
-            <View style={styles.bulletPoints}>
-              <View style={styles.bulletItem}>
-                <View style={[styles.bullet, { backgroundColor: Colors.light.success }]} />
-                <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  Identify your key strengths
+          </View>
+        </Card>
+
+        <Card elevation={1} style={styles.categoriesCard}>
+          <View style={styles.categoriesHeader}>
+            <Feather name="check-square" size={18} color={Colors.light.primary} />
+            <ThemedText type="h4" style={styles.categoriesTitle}>
+              What We Evaluate
+            </ThemedText>
+          </View>
+          <View style={styles.categoriesGrid}>
+            {EVALUATION_CATEGORIES.map((category) => (
+              <View key={category.name} style={styles.categoryChip}>
+                <Feather name={category.icon} size={14} color={Colors.light.primary} />
+                <ThemedText type="small" style={styles.categoryChipText}>
+                  {category.name}
                 </ThemedText>
               </View>
-              <View style={styles.bulletItem}>
-                <View style={[styles.bullet, { backgroundColor: Colors.light.warning }]} />
-                <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  Discover skill gaps to address
-                </ThemedText>
-              </View>
-              <View style={styles.bulletItem}>
-                <View style={[styles.bullet, { backgroundColor: Colors.light.primary }]} />
-                <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  Get actionable next steps
-                </ThemedText>
-              </View>
-            </View>
+            ))}
           </View>
         </Card>
 
@@ -157,11 +168,12 @@ export default function AssessScreen() {
         />
 
         <View style={styles.privacyNote}>
+          <Feather name="lock" size={14} color={theme.textSecondary} />
           <ThemedText
             type="small"
             style={[styles.privacyText, { color: theme.textSecondary }]}
           >
-            Your resume is analyzed privately and never shared. We don't store your resume data on our servers.
+            Your resume is analyzed privately and never stored on our servers.
           </ThemedText>
         </View>
 
@@ -185,7 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   instructionsCard: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   instructionsContent: {},
   instructionsTitle: {
@@ -193,29 +205,46 @@ const styles = StyleSheet.create({
   },
   instructionsText: {
     lineHeight: 22,
-    marginBottom: Spacing.lg,
   },
-  bulletPoints: {
-    gap: Spacing.sm,
+  categoriesCard: {
+    marginBottom: Spacing.xl,
   },
-  bulletItem: {
+  categoriesHeader: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: Spacing.md,
   },
-  bullet: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: Spacing.sm,
+  categoriesTitle: {
+    marginLeft: Spacing.sm,
+  },
+  categoriesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: `${Colors.light.primary}10`,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.xs,
+  },
+  categoryChipText: {
+    color: Colors.light.primary,
+    fontWeight: "500",
   },
   privacyNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: Spacing.xl,
     marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.sm,
+    gap: Spacing.sm,
   },
   privacyText: {
     textAlign: "center",
-    lineHeight: 20,
   },
   analyzeButton: {
     marginTop: Spacing.sm,

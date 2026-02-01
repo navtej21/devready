@@ -9,6 +9,8 @@ import * as Haptics from "expo-haptics";
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
 import { ScoreRing } from "@/components/ScoreRing";
+import { ScoreBreakdown } from "@/components/ScoreBreakdown";
+import { HowWeAssess } from "@/components/HowWeAssess";
 import { SectionHeader } from "@/components/SectionHeader";
 import { FeedbackItem } from "@/components/FeedbackItem";
 import { useTheme } from "@/hooks/useTheme";
@@ -43,7 +45,7 @@ export default function ResultsScreen() {
       scrollIndicatorInsets={{ bottom: insets.bottom }}
     >
       <View style={styles.scoreSection}>
-        <ScoreRing score={assessment.score} size={220} />
+        <ScoreRing score={assessment.score} size={200} />
         <ThemedText
           type="body"
           style={[styles.resumeName, { color: theme.textSecondary }]}
@@ -52,11 +54,17 @@ export default function ResultsScreen() {
         </ThemedText>
       </View>
 
+      {assessment.categories && assessment.categories.length > 0 ? (
+        <ScoreBreakdown categories={assessment.categories} />
+      ) : null}
+
+      <HowWeAssess methodology={assessment.scoringMethodology} />
+
       {assessment.strengths.length > 0 ? (
         <View style={styles.section}>
           <SectionHeader
             title="Your Strengths"
-            subtitle="Skills and experiences that make you stand out"
+            subtitle="Skills and experiences that exceed role expectations"
           />
           {assessment.strengths.map((strength, index) => (
             <FeedbackItem key={index} text={strength} type="strength" />
@@ -67,8 +75,8 @@ export default function ResultsScreen() {
       {assessment.gaps.length > 0 ? (
         <View style={styles.section}>
           <SectionHeader
-            title="Areas to Improve"
-            subtitle="Skills that could strengthen your profile"
+            title="Areas to Develop"
+            subtitle="Skills that could better meet role expectations"
           />
           {assessment.gaps.map((gap, index) => (
             <FeedbackItem key={index} text={gap} type="gap" />
@@ -79,8 +87,8 @@ export default function ResultsScreen() {
       {assessment.actions.length > 0 ? (
         <View style={styles.section}>
           <SectionHeader
-            title="What to Do Next"
-            subtitle="Actionable steps to improve your readiness"
+            title="Recommended Actions"
+            subtitle="Specific steps to improve your readiness"
           />
           {assessment.actions.map((action, index) => (
             <FeedbackItem key={index} text={action} type="action" />
@@ -101,7 +109,7 @@ const styles = StyleSheet.create({
   },
   scoreSection: {
     alignItems: "center",
-    marginBottom: Spacing["3xl"],
+    marginBottom: Spacing["2xl"],
   },
   resumeName: {
     marginTop: Spacing.lg,
