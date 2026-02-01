@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let prompt: string;
 
       if (hasResumeContent) {
-        prompt = `You are an expert career advisor specializing in backend development roles. Analyze the following resume content and provide a transparent, explainable assessment.
+        prompt = `You are an expert career advisor specializing in backend development roles. Analyze the following resume content and provide a transparent, explainable assessment with prioritized improvement guidance.
 
 ## RESUME CONTENT:
 ${resumeText.substring(0, 8000)}
@@ -137,6 +137,19 @@ For EACH category above, provide:
 2. 1-2 specific findings FROM THE RESUME that justify the score
 
 The total score is the sum of all category scores (max 100).
+
+## IMPROVEMENT PLAN REQUIREMENTS:
+
+Provide a prioritized improvement plan with:
+1. **focusAreas**: 2-3 prioritized areas to focus on, each with:
+   - category: which skill category this relates to
+   - priority: "high" | "medium" | "low" based on impact on readiness
+   - title: short actionable title
+   - description: why this matters for backend developer roles
+   - effort: "quick-win" (achievable in 1-4 weeks) | "medium-term" (1-3 months) | "long-term" (3+ months)
+   - actions: 2-3 specific steps to improve in this area
+
+2. **topPriority**: The single most impactful thing to focus on first (object with title and reason)
 
 ## RESPONSE FORMAT (JSON only):
 
@@ -200,7 +213,37 @@ The total score is the sum of all category scores (max 100).
     "<Action 1 - specific step to address a gap>",
     "<Action 2 - specific step to address a gap>",
     "<Action 3 - specific step to address a gap>"
-  ]
+  ],
+  "focusAreas": [
+    {
+      "category": "Database Skills",
+      "priority": "high",
+      "title": "Build NoSQL Experience",
+      "description": "NoSQL databases like MongoDB are used in 70% of modern backend systems. This gap significantly limits your candidacy.",
+      "effort": "quick-win",
+      "actions": [
+        "Complete MongoDB University free course (2 weeks)",
+        "Add MongoDB to an existing project",
+        "Build a simple CRUD API with MongoDB backend"
+      ]
+    },
+    {
+      "category": "DevOps & Cloud",
+      "priority": "medium",
+      "title": "Get Cloud Certified",
+      "description": "Cloud platform knowledge is expected for mid-level roles. AWS or GCP certification validates this skill.",
+      "effort": "medium-term",
+      "actions": [
+        "Start with AWS Cloud Practitioner certification",
+        "Deploy one of your projects to AWS",
+        "Learn Docker basics and containerize an application"
+      ]
+    }
+  ],
+  "topPriority": {
+    "title": "Build NoSQL Experience",
+    "reason": "This is the highest-impact gap that's also achievable quickly. Completing this in 2-4 weeks could significantly improve your interview readiness."
+  }
 }
 
 ## LEVEL GUIDELINES:
@@ -211,9 +254,11 @@ The total score is the sum of all category scores (max 100).
 
 ## IMPORTANT RULES:
 1. Base ALL findings on actual content from the resume
-2. Quote or reference specific technologies, projects, or experiences mentioned
-3. If a skill area has no evidence, give 0-2 points and note "No evidence found"
-4. Make the assessment feel personalized based on what's actually in the resume
+2. Prioritize focus areas by IMPACT on readiness, not just lowest scores
+3. Mark quick-wins for gaps that can be addressed in under a month
+4. Mark long-term for gaps requiring significant learning or experience
+5. The topPriority should balance impact and achievability
+6. Make improvement guidance specific and actionable, not generic
 
 Respond ONLY with valid JSON, no markdown or other formatting.`;
       } else {
@@ -227,66 +272,80 @@ ${categoriesJson}
 ## RESPONSE FORMAT (JSON only):
 
 {
-  "score": 45,
-  "level": "Developing",
+  "score": 0,
+  "level": "Early",
   "categories": [
     {
       "name": "Programming Languages",
-      "score": 10,
+      "score": 0,
       "maxScore": 20,
       "description": "Proficiency in backend languages like Python, Java, Node.js, Go, or similar",
       "findings": ["Unable to extract resume content - please try uploading a different file format"]
     },
     {
       "name": "Database Skills",
-      "score": 8,
+      "score": 0,
       "maxScore": 20,
       "description": "Experience with SQL databases (PostgreSQL, MySQL) and NoSQL systems (MongoDB, Redis)",
       "findings": ["Resume text could not be parsed - try PDF or plain text format"]
     },
     {
       "name": "API Design",
-      "score": 7,
+      "score": 0,
       "maxScore": 15,
       "description": "Knowledge of REST principles, GraphQL, and API best practices",
       "findings": ["File content not readable"]
     },
     {
       "name": "DevOps & Cloud",
-      "score": 5,
+      "score": 0,
       "maxScore": 15,
       "description": "Familiarity with cloud platforms (AWS, GCP, Azure), Docker, and CI/CD",
       "findings": ["Upload a text-based PDF for accurate analysis"]
     },
     {
       "name": "System Design",
-      "score": 6,
+      "score": 0,
       "maxScore": 15,
       "description": "Understanding of architecture patterns, scalability, and distributed systems",
       "findings": ["Could not analyze - ensure PDF is not image-based"]
     },
     {
       "name": "Professional Experience",
-      "score": 9,
+      "score": 0,
       "maxScore": 15,
       "description": "Relevant work experience, projects, and contributions that demonstrate practical application",
       "findings": ["Re-upload your resume in a supported format for accurate scoring"]
     }
   ],
   "strengths": [
-    "Note: We couldn't read your resume file. This is a sample result.",
-    "Try uploading a text-based PDF (not scanned images) for accurate analysis",
-    "Word documents (.docx) and plain text files also work well"
+    "Note: We couldn't read your resume file. This is a sample result."
   ],
   "gaps": [
-    "Resume file format issue: The uploaded file couldn't be parsed for text content",
-    "For best results, ensure your PDF contains selectable text, not just images"
+    "Resume file format issue: The uploaded file couldn't be parsed for text content"
   ],
   "actions": [
     "Re-upload your resume as a text-based PDF (created from Word, not scanned)",
-    "Alternatively, upload a .docx Word document or .txt plain text file",
-    "If using a scanned document, try running OCR software first to make the text searchable"
-  ]
+    "Alternatively, upload a .docx Word document or .txt plain text file"
+  ],
+  "focusAreas": [
+    {
+      "category": "Professional Experience",
+      "priority": "high",
+      "title": "Upload a Readable Resume",
+      "description": "We need to read your resume content to provide personalized guidance.",
+      "effort": "quick-win",
+      "actions": [
+        "Save your resume as a text-based PDF from Word or Google Docs",
+        "Or upload a .docx or .txt file instead",
+        "Avoid scanned image PDFs - they can't be read"
+      ]
+    }
+  ],
+  "topPriority": {
+    "title": "Upload a Readable Resume",
+    "reason": "Once we can read your resume, you'll get personalized improvement guidance based on your actual experience."
+  }
 }
 
 Respond ONLY with valid JSON, no markdown or other formatting.`;
@@ -297,14 +356,14 @@ Respond ONLY with valid JSON, no markdown or other formatting.`;
         messages: [
           {
             role: "system",
-            content: "You are an expert career advisor providing transparent, explainable resume assessments. Always respond with valid JSON only, no markdown formatting.",
+            content: "You are an expert career advisor providing transparent, explainable resume assessments with prioritized improvement guidance. Always respond with valid JSON only, no markdown formatting.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        max_completion_tokens: 3000,
+        max_completion_tokens: 4000,
       });
 
       const content = response.choices[0]?.message?.content || "{}";
@@ -368,6 +427,23 @@ function generateFallbackResult(resumeParsed: boolean) {
         "Upload a text-based PDF (not a scanned image)",
         "Try a Word document (.docx) or plain text file (.txt)"
       ],
+      focusAreas: [
+        {
+          category: "Professional Experience",
+          priority: "high",
+          title: "Upload a Readable Resume",
+          description: "We need to read your resume content to provide personalized guidance.",
+          effort: "quick-win",
+          actions: [
+            "Save your resume as a text-based PDF from Word or Google Docs",
+            "Or upload a .docx or .txt file instead"
+          ]
+        }
+      ],
+      topPriority: {
+        title: "Upload a Readable Resume",
+        reason: "Once we can read your resume, you'll get personalized improvement guidance."
+      }
     };
   }
 
@@ -433,14 +509,43 @@ function generateFallbackResult(resumeParsed: boolean) {
       "API Design: Understands REST fundamentals through project work",
     ],
     gaps: [
-      "Database Skills: Limited NoSQL experience doesn't meet industry expectations for modern backend roles",
-      "DevOps & Cloud: Cloud platform knowledge is increasingly expected but not clearly demonstrated",
+      "Database Skills: Limited NoSQL experience doesn't meet industry expectations",
+      "DevOps & Cloud: Cloud platform knowledge is increasingly expected but not demonstrated",
     ],
     actions: [
       "Build a project using MongoDB or Redis to gain NoSQL experience",
       "Get AWS or GCP cloud practitioner certification",
-      "Contribute to an open-source backend project to demonstrate collaboration",
-      "Practice system design problems on platforms like LeetCode or Pramp",
+      "Contribute to an open-source backend project",
     ],
+    focusAreas: [
+      {
+        category: "Database Skills",
+        priority: "high",
+        title: "Build NoSQL Experience",
+        description: "NoSQL databases are used in most modern backend systems. This is a significant gap.",
+        effort: "quick-win",
+        actions: [
+          "Complete MongoDB University free course",
+          "Add MongoDB to an existing project",
+          "Build a simple API with MongoDB backend"
+        ]
+      },
+      {
+        category: "DevOps & Cloud",
+        priority: "medium",
+        title: "Get Cloud Platform Experience",
+        description: "Cloud knowledge is expected for backend roles. Start with one platform.",
+        effort: "medium-term",
+        actions: [
+          "Start AWS Cloud Practitioner certification",
+          "Deploy a project to AWS or GCP",
+          "Learn Docker basics"
+        ]
+      }
+    ],
+    topPriority: {
+      title: "Build NoSQL Experience",
+      reason: "High-impact gap that's achievable quickly. Could improve interview readiness in 2-4 weeks."
+    }
   };
 }

@@ -10,6 +10,20 @@ export interface CategoryScore {
   findings: string[];
 }
 
+export interface FocusArea {
+  category: string;
+  priority: "high" | "medium" | "low";
+  title: string;
+  description: string;
+  effort: "quick-win" | "medium-term" | "long-term";
+  actions: string[];
+}
+
+export interface TopPriority {
+  title: string;
+  reason: string;
+}
+
 export interface Assessment {
   id: string;
   score: number;
@@ -21,6 +35,8 @@ export interface Assessment {
   createdAt: string;
   categories?: CategoryScore[];
   scoringMethodology?: string;
+  focusAreas?: FocusArea[];
+  topPriority?: TopPriority;
 }
 
 export async function saveAssessment(assessment: Assessment): Promise<void> {
