@@ -12,11 +12,13 @@ import { Button } from "@/components/Button";
 import { ScoreRing } from "@/components/ScoreRing";
 import { StatCard } from "@/components/StatCard";
 import { TopPriorityCard } from "@/components/TopPriorityCard";
+import { ProgressSummary } from "@/components/ProgressSummary";
 import { SectionHeader } from "@/components/SectionHeader";
 import { FeedbackItem } from "@/components/FeedbackItem";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, Colors } from "@/constants/theme";
-import { getLatestAssessment, type Assessment } from "@/lib/storage";
+import { getAssessments, type Assessment } from "@/lib/storage";
+import { calculateProgress, type ProgressData } from "@/lib/progress";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 import type { MainTabParamList } from "@/navigation/MainTabNavigator";
 import type { CompositeNavigationProp } from "@react-navigation/native";
@@ -35,24 +37,32 @@ export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   const [assessment, setAssessment] = useState<Assessment | null>(null);
+  const [progressData, setProgressData] = useState<ProgressData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadAssessment = useCallback(async () => {
-    const latest = await getLatestAssessment();
-    setAssessment(latest);
+  const loadData = useCallback(async () => {
+    const allAssessments = await getAssessments();
+    if (allAssessments.length > 0) {
+      setAssessment(allAssessments[0]);
+      const progress = calculateProgress(allAssessments);
+      setProgressData(progress);
+    } else {
+      setAssessment(null);
+      setProgressData(null);
+    }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      loadAssessment();
-    }, [loadAssessment])
+      loadData();
+    }, [loadData])
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadAssessment();
+    await loadData();
     setRefreshing(false);
-  }, [loadAssessment]);
+  }, [loadData]);
 
   const handleStartAssessment = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -134,6 +144,14 @@ export default function HomeScreen() {
           Last assessed {formatDate(assessment.createdAt)}
         </ThemedText>
       </View>
+
+      {progressData ? (
+        <ProgressSummary
+          insight={progressData.insight}
+          journeyMessage={progressData.journeyMessage}
+          compact
+        />
+      ) : null}
 
       {assessment.topPriority ? (
         <TopPriorityCard topPriority={assessment.topPriority} compact />
