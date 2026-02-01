@@ -2,6 +2,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ASSESSMENTS_KEY = "@devready_assessments";
 
+export interface CategoryScore {
+  name: string;
+  score: number;
+  maxScore: number;
+  description: string;
+  findings: string[];
+}
+
 export interface Assessment {
   id: string;
   score: number;
@@ -11,6 +19,8 @@ export interface Assessment {
   actions: string[];
   resumeName: string;
   createdAt: string;
+  categories?: CategoryScore[];
+  scoringMethodology?: string;
 }
 
 export async function saveAssessment(assessment: Assessment): Promise<void> {

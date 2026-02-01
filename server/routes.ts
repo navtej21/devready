@@ -7,34 +7,40 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const BACKEND_DEVELOPER_EXPECTATIONS = `
-Backend Developer Role Expectations:
+const SCORING_CATEGORIES = [
+  {
+    name: "Programming Languages",
+    maxScore: 20,
+    description: "Proficiency in backend languages like Python, Java, Node.js, Go, or similar",
+  },
+  {
+    name: "Database Skills",
+    maxScore: 20,
+    description: "Experience with SQL databases (PostgreSQL, MySQL) and NoSQL systems (MongoDB, Redis)",
+  },
+  {
+    name: "API Design",
+    maxScore: 15,
+    description: "Knowledge of REST principles, GraphQL, and API best practices",
+  },
+  {
+    name: "DevOps & Cloud",
+    maxScore: 15,
+    description: "Familiarity with cloud platforms (AWS, GCP, Azure), Docker, and CI/CD",
+  },
+  {
+    name: "System Design",
+    maxScore: 15,
+    description: "Understanding of architecture patterns, scalability, and distributed systems",
+  },
+  {
+    name: "Professional Experience",
+    maxScore: 15,
+    description: "Relevant work experience, projects, and contributions that demonstrate practical application",
+  },
+];
 
-Core Technical Skills:
-- Programming languages: Python, Java, Node.js, Go, or similar
-- Databases: SQL (PostgreSQL, MySQL), NoSQL (MongoDB, Redis)
-- API Design: REST, GraphQL
-- Version control: Git
-- Cloud platforms: AWS, GCP, or Azure basics
-- Containerization: Docker basics
-- Testing: Unit testing, integration testing
-
-Intermediate Skills:
-- System design fundamentals
-- Authentication/Authorization (JWT, OAuth)
-- Message queues (RabbitMQ, Kafka)
-- Caching strategies
-- CI/CD pipelines
-- Microservices architecture
-
-Advanced Skills:
-- Distributed systems
-- Performance optimization
-- Security best practices
-- Infrastructure as Code
-- Monitoring and observability
-- Database scaling and optimization
-`;
+const SCORING_METHODOLOGY = `Your readiness score is calculated by evaluating your resume against ${SCORING_CATEGORIES.length} key competency areas that employers look for in Backend Developer candidates. Each category is weighted based on its importance in real-world hiring decisions. The final score represents how well your current experience and skills align with industry expectations for backend roles.`;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/analyze-resume", async (req, res) => {
@@ -45,28 +51,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "File name is required" });
       }
 
+      const categoriesJson = JSON.stringify(SCORING_CATEGORIES, null, 2);
+
       const prompt = `You are an expert career advisor specializing in backend development roles. Analyze this resume file named "${fileName}" as if it were a typical backend developer resume.
 
-Since I cannot read the actual file content, generate a realistic assessment based on what a typical early-career to mid-level developer might have, varying the results slightly for realism.
+Your task is to provide a TRANSPARENT and EXPLAINABLE assessment. Users need to understand exactly WHY they received their score.
 
-${BACKEND_DEVELOPER_EXPECTATIONS}
+## SCORING CATEGORIES (evaluate each separately):
+${categoriesJson}
 
-Provide a JSON response with this exact structure:
+## ASSESSMENT REQUIREMENTS:
+
+For EACH category above, provide:
+1. A score out of the maximum points
+2. 1-2 specific findings from the resume that justify the score
+
+The total score is the sum of all category scores (max 100).
+
+## RESPONSE FORMAT (JSON only):
+
 {
-  "score": <number 0-100>,
+  "score": <total score 0-100>,
   "level": "<Early|Developing|Interview-Ready|Strong>",
-  "strengths": [<array of 3-5 specific strength statements>],
-  "gaps": [<array of 2-4 specific gap statements>],
-  "actions": [<array of 3-5 specific actionable improvement suggestions>]
+  "categories": [
+    {
+      "name": "Programming Languages",
+      "score": <0-20>,
+      "maxScore": 20,
+      "description": "Proficiency in backend languages like Python, Java, Node.js, Go, or similar",
+      "findings": ["Specific finding 1", "Specific finding 2"]
+    },
+    {
+      "name": "Database Skills",
+      "score": <0-20>,
+      "maxScore": 20,
+      "description": "Experience with SQL databases (PostgreSQL, MySQL) and NoSQL systems (MongoDB, Redis)",
+      "findings": ["Specific finding 1", "Specific finding 2"]
+    },
+    {
+      "name": "API Design",
+      "score": <0-15>,
+      "maxScore": 15,
+      "description": "Knowledge of REST principles, GraphQL, and API best practices",
+      "findings": ["Specific finding 1"]
+    },
+    {
+      "name": "DevOps & Cloud",
+      "score": <0-15>,
+      "maxScore": 15,
+      "description": "Familiarity with cloud platforms (AWS, GCP, Azure), Docker, and CI/CD",
+      "findings": ["Specific finding 1"]
+    },
+    {
+      "name": "System Design",
+      "score": <0-15>,
+      "maxScore": 15,
+      "description": "Understanding of architecture patterns, scalability, and distributed systems",
+      "findings": ["Specific finding 1"]
+    },
+    {
+      "name": "Professional Experience",
+      "score": <0-15>,
+      "maxScore": 15,
+      "description": "Relevant work experience, projects, and contributions that demonstrate practical application",
+      "findings": ["Specific finding 1"]
+    }
+  ],
+  "strengths": [
+    "<Strength 1 - must reference which category it relates to>",
+    "<Strength 2 - must reference which category it relates to>",
+    "<Strength 3 - must reference which category it relates to>"
+  ],
+  "gaps": [
+    "<Gap 1 - must explain what expectation wasn't met>",
+    "<Gap 2 - must explain what expectation wasn't met>"
+  ],
+  "actions": [
+    "<Action 1 - specific, actionable step tied to a gap>",
+    "<Action 2 - specific, actionable step tied to a gap>",
+    "<Action 3 - specific, actionable step tied to a gap>"
+  ]
 }
 
-Guidelines for scoring:
-- 0-25 (Early): Just starting, basic programming knowledge
-- 26-50 (Developing): Some projects, learning core technologies
-- 51-75 (Interview-Ready): Solid fundamentals, can contribute to teams
-- 76-100 (Strong): Excellent skills, leadership potential
+## LEVEL GUIDELINES:
+- Early (0-25): Just starting, basic programming knowledge
+- Developing (26-50): Some projects, learning core technologies  
+- Interview-Ready (51-75): Solid fundamentals, can contribute to teams
+- Strong (76-100): Excellent skills, leadership potential
 
-Make the feedback specific, actionable, and encouraging. Focus on what they can do next, not just what's missing.
+## IMPORTANT RULES:
+1. Strengths must clearly connect to high-scoring categories
+2. Gaps must explain what role expectation wasn't demonstrated
+3. Actions must be specific steps to address identified gaps
+4. Findings must be concrete observations, not generic statements
+5. Make the assessment feel personalized and constructive
 
 Respond ONLY with valid JSON, no markdown or other formatting.`;
 
@@ -75,72 +153,32 @@ Respond ONLY with valid JSON, no markdown or other formatting.`;
         messages: [
           {
             role: "system",
-            content: "You are an expert career advisor. Always respond with valid JSON only, no markdown formatting.",
+            content: "You are an expert career advisor providing transparent, explainable resume assessments. Always respond with valid JSON only, no markdown formatting.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        max_completion_tokens: 2048,
+        max_completion_tokens: 3000,
       });
 
       const content = response.choices[0]?.message?.content || "{}";
-      
+
       let result;
       try {
         const cleanContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
         result = JSON.parse(cleanContent);
       } catch (parseError) {
         console.error("Failed to parse AI response:", content);
-        result = {
-          score: 45,
-          level: "Developing",
-          strengths: [
-            "Shows initiative in learning backend technologies",
-            "Has foundational programming knowledge",
-            "Demonstrates interest in building web applications",
-          ],
-          gaps: [
-            "Could benefit from more hands-on project experience",
-            "Database design skills need further development",
-            "API design patterns could be strengthened",
-          ],
-          actions: [
-            "Build a REST API project with authentication",
-            "Learn SQL through a practical database project",
-            "Contribute to an open-source backend project",
-            "Practice system design fundamentals",
-          ],
-        };
+        result = generateFallbackResult();
       }
 
-      if (
-        typeof result.score !== "number" ||
-        !result.level ||
-        !Array.isArray(result.strengths) ||
-        !Array.isArray(result.gaps) ||
-        !Array.isArray(result.actions)
-      ) {
-        result = {
-          score: Math.floor(Math.random() * 30) + 35,
-          level: "Developing",
-          strengths: result.strengths || [
-            "Shows foundational programming skills",
-            "Demonstrates interest in backend development",
-            "Has experience with common development tools",
-          ],
-          gaps: result.gaps || [
-            "Could expand knowledge of database systems",
-            "API design experience could be strengthened",
-          ],
-          actions: result.actions || [
-            "Build a complete CRUD API project",
-            "Learn a cloud platform like AWS or GCP",
-            "Practice with Docker containerization",
-          ],
-        };
+      if (!validateResult(result)) {
+        result = generateFallbackResult();
       }
+
+      result.scoringMethodology = SCORING_METHODOLOGY;
 
       res.json(result);
     } catch (error) {
@@ -151,4 +189,91 @@ Respond ONLY with valid JSON, no markdown or other formatting.`;
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+function validateResult(result: any): boolean {
+  return (
+    typeof result.score === "number" &&
+    result.level &&
+    Array.isArray(result.categories) &&
+    result.categories.length === 6 &&
+    Array.isArray(result.strengths) &&
+    Array.isArray(result.gaps) &&
+    Array.isArray(result.actions)
+  );
+}
+
+function generateFallbackResult() {
+  return {
+    score: 48,
+    level: "Developing",
+    categories: [
+      {
+        name: "Programming Languages",
+        score: 12,
+        maxScore: 20,
+        description: "Proficiency in backend languages like Python, Java, Node.js, Go, or similar",
+        findings: [
+          "Shows experience with at least one backend language",
+          "Could demonstrate deeper expertise with additional languages",
+        ],
+      },
+      {
+        name: "Database Skills",
+        score: 8,
+        maxScore: 20,
+        description: "Experience with SQL databases (PostgreSQL, MySQL) and NoSQL systems (MongoDB, Redis)",
+        findings: [
+          "Basic database knowledge indicated",
+          "NoSQL experience would strengthen profile",
+        ],
+      },
+      {
+        name: "API Design",
+        score: 7,
+        maxScore: 15,
+        description: "Knowledge of REST principles, GraphQL, and API best practices",
+        findings: ["REST API experience suggested by project work"],
+      },
+      {
+        name: "DevOps & Cloud",
+        score: 5,
+        maxScore: 15,
+        description: "Familiarity with cloud platforms (AWS, GCP, Azure), Docker, and CI/CD",
+        findings: ["Limited cloud platform experience visible"],
+      },
+      {
+        name: "System Design",
+        score: 6,
+        maxScore: 15,
+        description: "Understanding of architecture patterns, scalability, and distributed systems",
+        findings: ["Foundational understanding, room for growth in distributed systems"],
+      },
+      {
+        name: "Professional Experience",
+        score: 10,
+        maxScore: 15,
+        description: "Relevant work experience, projects, and contributions that demonstrate practical application",
+        findings: [
+          "Projects demonstrate practical application",
+          "Industry experience would add credibility",
+        ],
+      },
+    ],
+    strengths: [
+      "Programming Languages: Shows initiative in learning backend technologies",
+      "Professional Experience: Has built practical projects demonstrating skills",
+      "API Design: Understands REST fundamentals through project work",
+    ],
+    gaps: [
+      "Database Skills: Limited NoSQL experience doesn't meet industry expectations for modern backend roles",
+      "DevOps & Cloud: Cloud platform knowledge is increasingly expected but not clearly demonstrated",
+    ],
+    actions: [
+      "Build a project using MongoDB or Redis to gain NoSQL experience",
+      "Get AWS or GCP cloud practitioner certification",
+      "Contribute to an open-source backend project to demonstrate collaboration",
+      "Practice system design problems on platforms like LeetCode or Pramp",
+    ],
+  };
 }
