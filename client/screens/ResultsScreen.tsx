@@ -11,6 +11,8 @@ import { Button } from "@/components/Button";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ScoreBreakdown } from "@/components/ScoreBreakdown";
 import { HowWeAssess } from "@/components/HowWeAssess";
+import { TopPriorityCard } from "@/components/TopPriorityCard";
+import { FocusAreaCard } from "@/components/FocusAreaCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { FeedbackItem } from "@/components/FeedbackItem";
 import { useTheme } from "@/hooks/useTheme";
@@ -54,6 +56,22 @@ export default function ResultsScreen() {
         </ThemedText>
       </View>
 
+      {assessment.topPriority ? (
+        <TopPriorityCard topPriority={assessment.topPriority} />
+      ) : null}
+
+      {assessment.focusAreas && assessment.focusAreas.length > 0 ? (
+        <View style={styles.section}>
+          <SectionHeader
+            title="Your Improvement Plan"
+            subtitle="Prioritized areas to focus on for maximum impact"
+          />
+          {assessment.focusAreas.map((focusArea, index) => (
+            <FocusAreaCard key={index} focusArea={focusArea} index={index} />
+          ))}
+        </View>
+      ) : null}
+
       {assessment.categories && assessment.categories.length > 0 ? (
         <ScoreBreakdown categories={assessment.categories} />
       ) : null}
@@ -80,18 +98,6 @@ export default function ResultsScreen() {
           />
           {assessment.gaps.map((gap, index) => (
             <FeedbackItem key={index} text={gap} type="gap" />
-          ))}
-        </View>
-      ) : null}
-
-      {assessment.actions.length > 0 ? (
-        <View style={styles.section}>
-          <SectionHeader
-            title="Recommended Actions"
-            subtitle="Specific steps to improve your readiness"
-          />
-          {assessment.actions.map((action, index) => (
-            <FeedbackItem key={index} text={action} type="action" />
           ))}
         </View>
       ) : null}

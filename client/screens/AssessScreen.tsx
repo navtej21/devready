@@ -110,6 +110,8 @@ export default function AssessScreen() {
         createdAt: new Date().toISOString(),
         categories: data.categories,
         scoringMethodology: data.scoringMethodology,
+        focusAreas: data.focusAreas,
+        topPriority: data.topPriority,
       };
 
       await saveAssessment(assessment);

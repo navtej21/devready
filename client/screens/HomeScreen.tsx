@@ -11,6 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
 import { ScoreRing } from "@/components/ScoreRing";
 import { StatCard } from "@/components/StatCard";
+import { TopPriorityCard } from "@/components/TopPriorityCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { FeedbackItem } from "@/components/FeedbackItem";
 import { useTheme } from "@/hooks/useTheme";
@@ -56,6 +57,13 @@ export default function HomeScreen() {
   const handleStartAssessment = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     navigation.navigate("AssessTab");
+  };
+
+  const handleViewResults = () => {
+    if (assessment) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      navigation.navigate("Results", { assessment });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -118,7 +126,7 @@ export default function HomeScreen() {
       }
     >
       <View style={styles.scoreSection}>
-        <ScoreRing score={assessment.score} />
+        <ScoreRing score={assessment.score} size={180} />
         <ThemedText
           type="small"
           style={[styles.assessedDate, { color: theme.textSecondary }]}
@@ -126,6 +134,10 @@ export default function HomeScreen() {
           Last assessed {formatDate(assessment.createdAt)}
         </ThemedText>
       </View>
+
+      {assessment.topPriority ? (
+        <TopPriorityCard topPriority={assessment.topPriority} compact />
+      ) : null}
 
       <View style={styles.statsRow}>
         <StatCard
@@ -143,9 +155,9 @@ export default function HomeScreen() {
         />
         <View style={{ width: Spacing.md }} />
         <StatCard
-          icon="arrow-up-circle"
-          label="Actions"
-          value={assessment.actions.length}
+          icon="target"
+          label="Focus Areas"
+          value={assessment.focusAreas?.length || 0}
           color={Colors.light.primary}
         />
       </View>
@@ -156,23 +168,35 @@ export default function HomeScreen() {
             title="Your Strengths"
             subtitle="Skills that stand out on your resume"
           />
-          {assessment.strengths.slice(0, 3).map((strength, index) => (
+          {assessment.strengths.slice(0, 2).map((strength, index) => (
             <FeedbackItem key={index} text={strength} type="strength" />
           ))}
         </View>
       ) : null}
 
-      {assessment.gaps.length > 0 ? (
+      {assessment.focusAreas && assessment.focusAreas.length > 0 ? (
         <View style={styles.section}>
           <SectionHeader
-            title="Areas to Improve"
-            subtitle="Skills that could strengthen your profile"
+            title="Improvement Plan"
+            subtitle="Your prioritized next steps"
           />
-          {assessment.gaps.slice(0, 3).map((gap, index) => (
-            <FeedbackItem key={index} text={gap} type="gap" />
+          {assessment.focusAreas.slice(0, 1).map((area, index) => (
+            <FeedbackItem
+              key={index}
+              text={`${area.title}: ${area.actions[0]}`}
+              type="action"
+            />
           ))}
         </View>
       ) : null}
+
+      <Button
+        variant="secondary"
+        onPress={handleViewResults}
+        style={styles.viewDetailsButton}
+      >
+        View Full Results
+      </Button>
 
       <Button onPress={handleStartAssessment} style={styles.newAssessmentButton}>
         Start New Assessment
@@ -211,7 +235,7 @@ const styles = StyleSheet.create({
   },
   scoreSection: {
     alignItems: "center",
-    marginBottom: Spacing["2xl"],
+    marginBottom: Spacing.xl,
   },
   assessedDate: {
     marginTop: Spacing.lg,
@@ -221,9 +245,10 @@ const styles = StyleSheet.create({
     marginBottom: Spacing["2xl"],
   },
   section: {
-    marginBottom: Spacing["2xl"],
+    marginBottom: Spacing.xl,
   },
-  newAssessmentButton: {
-    marginTop: Spacing.md,
+  viewDetailsButton: {
+    marginBottom: Spacing.md,
   },
+  newAssessmentButton: {},
 });
