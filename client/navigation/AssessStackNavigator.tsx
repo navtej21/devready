@@ -1,25 +1,25 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import ProfileScreen from "@/screens/ProfileScreen";
+import AssessScreen from "@/screens/AssessScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 
-export type ProfileStackParamList = {
-  Profile: undefined;
+export type AssessStackParamList = {
+  Assess: undefined;
 };
 
-const Stack = createNativeStackNavigator<ProfileStackParamList>();
+const Stack = createNativeStackNavigator<AssessStackParamList>();
 
-export default function ProfileStackNavigator() {
+export default function AssessStackNavigator() {
   const screenOptions = useScreenOptions();
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
       <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
+        name="Assess"
+        component={AssessScreen}
         options={{
-          headerTitle: "Profile",
+          headerTitle: "New Assessment",
         }}
       />
     </Stack.Navigator>

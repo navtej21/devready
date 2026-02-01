@@ -1,30 +1,46 @@
 import { Platform } from "react-native";
 
-const tintColorLight = "#007AFF";
-const tintColorDark = "#0A84FF";
+const primaryColor = "#2D6A4F";
+const accentColor = "#F77F00";
 
 export const Colors = {
   light: {
-    text: "#11181C",
+    text: "#1C1C1E",
+    textSecondary: "#6B7280",
     buttonText: "#FFFFFF",
-    tabIconDefault: "#687076",
-    tabIconSelected: tintColorLight,
-    link: "#007AFF",
-    backgroundRoot: "#FFFFFF", // Elevation 0
-    backgroundDefault: "#F2F2F2", // Elevation 1
-    backgroundSecondary: "#E6E6E6", // Elevation 2
-    backgroundTertiary: "#D9D9D9", // Elevation 3
+    tabIconDefault: "#6B7280",
+    tabIconSelected: primaryColor,
+    link: primaryColor,
+    accent: accentColor,
+    primary: primaryColor,
+    backgroundRoot: "#FAFAF9",
+    backgroundDefault: "#FFFFFF",
+    backgroundSecondary: "#F5F5F4",
+    backgroundTertiary: "#E7E5E4",
+    border: "#E5E7EB",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    error: "#EF4444",
   },
   dark: {
     text: "#ECEDEE",
+    textSecondary: "#9BA1A6",
     buttonText: "#FFFFFF",
     tabIconDefault: "#9BA1A6",
-    tabIconSelected: tintColorDark,
-    link: "#0A84FF",
-    backgroundRoot: "#1F2123", // Elevation 0
-    backgroundDefault: "#2A2C2E", // Elevation 1
-    backgroundSecondary: "#353739", // Elevation 2
-    backgroundTertiary: "#404244", // Elevation 3
+    tabIconSelected: "#40916C",
+    link: "#40916C",
+    accent: accentColor,
+    primary: "#40916C",
+    backgroundRoot: "#1F2123",
+    backgroundDefault: "#2A2C2E",
+    backgroundSecondary: "#353739",
+    backgroundTertiary: "#404244",
+    border: "#404244",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    error: "#EF4444",
   },
 };
 
@@ -39,67 +55,76 @@ export const Spacing = {
   "4xl": 40,
   "5xl": 48,
   inputHeight: 48,
-  buttonHeight: 52,
+  buttonHeight: 56,
 };
 
 export const BorderRadius = {
   xs: 8,
   sm: 12,
-  md: 18,
-  lg: 24,
-  xl: 30,
-  "2xl": 40,
-  "3xl": 50,
+  md: 16,
+  lg: 20,
+  xl: 24,
+  "2xl": 32,
+  "3xl": 40,
   full: 9999,
 };
 
 export const Typography = {
-  h1: {
+  display: {
     fontSize: 32,
     lineHeight: 40,
     fontWeight: "700" as const,
+    fontFamily: "Montserrat_700Bold",
   },
-  h2: {
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: "700" as const,
-  },
-  h3: {
+  h1: {
     fontSize: 24,
     lineHeight: 32,
-    fontWeight: "600" as const,
+    fontWeight: "700" as const,
+    fontFamily: "Montserrat_700Bold",
   },
-  h4: {
+  h2: {
     fontSize: 20,
     lineHeight: 28,
     fontWeight: "600" as const,
+    fontFamily: "Montserrat_600SemiBold",
+  },
+  h3: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "600" as const,
+    fontFamily: "Montserrat_600SemiBold",
+  },
+  h4: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "600" as const,
+    fontFamily: "Montserrat_600SemiBold",
   },
   body: {
     fontSize: 16,
     lineHeight: 24,
     fontWeight: "400" as const,
+    fontFamily: "Inter_400Regular",
   },
   small: {
     fontSize: 14,
     lineHeight: 20,
     fontWeight: "400" as const,
+    fontFamily: "Inter_400Regular",
   },
   link: {
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: "400" as const,
+    fontWeight: "500" as const,
+    fontFamily: "Inter_500Medium",
   },
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: "system-ui",
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: "ui-serif",
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: "ui-rounded",
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: "ui-monospace",
   },
   default: {
@@ -116,3 +141,37 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+export const ReadinessLevels = {
+  early: {
+    label: "Early",
+    color: "#3B82F6",
+    minScore: 0,
+    maxScore: 25,
+  },
+  developing: {
+    label: "Developing",
+    color: "#F59E0B",
+    minScore: 26,
+    maxScore: 50,
+  },
+  interviewReady: {
+    label: "Interview-Ready",
+    color: "#2D6A4F",
+    minScore: 51,
+    maxScore: 75,
+  },
+  strong: {
+    label: "Strong",
+    color: "#10B981",
+    minScore: 76,
+    maxScore: 100,
+  },
+};
+
+export function getReadinessLevel(score: number) {
+  if (score <= 25) return ReadinessLevels.early;
+  if (score <= 50) return ReadinessLevels.developing;
+  if (score <= 75) return ReadinessLevels.interviewReady;
+  return ReadinessLevels.strong;
+}
