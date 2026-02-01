@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "node:http";
 import OpenAI from "openai";
+import pdf from "pdf-parse";
+import mammoth from "mammoth";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -42,20 +44,88 @@ const SCORING_CATEGORIES = [
 
 const SCORING_METHODOLOGY = `Your readiness score is calculated by evaluating your resume against ${SCORING_CATEGORIES.length} key competency areas that employers look for in Backend Developer candidates. Each category is weighted based on its importance in real-world hiring decisions. The final score represents how well your current experience and skills align with industry expectations for backend roles.`;
 
+async function extractTextFromPDF(base64Data: string): Promise<string> {
+  try {
+    const buffer = Buffer.from(base64Data, "base64");
+    const data = await pdf(buffer);
+    return data.text || "";
+  } catch (error) {
+    console.error("Error parsing PDF:", error);
+    return "";
+  }
+}
+
+async function extractTextFromWord(base64Data: string): Promise<string> {
+  try {
+    const buffer = Buffer.from(base64Data, "base64");
+    const result = await mammoth.extractRawText({ buffer });
+    return result.value || "";
+  } catch (error) {
+    console.error("Error parsing Word document:", error);
+    return "";
+  }
+}
+
+async function extractTextFromFile(
+  base64Data: string | undefined,
+  fileName: string,
+  mimeType: string | undefined
+): Promise<string> {
+  if (!base64Data) {
+    return "";
+  }
+
+  const lowerFileName = fileName.toLowerCase();
+  const lowerMimeType = (mimeType || "").toLowerCase();
+
+  if (lowerFileName.endsWith(".pdf") || lowerMimeType.includes("pdf")) {
+    return extractTextFromPDF(base64Data);
+  }
+
+  if (
+    lowerFileName.endsWith(".docx") ||
+    lowerMimeType.includes("openxmlformats-officedocument.wordprocessingml")
+  ) {
+    return extractTextFromWord(base64Data);
+  }
+
+  if (lowerFileName.endsWith(".doc") || lowerMimeType.includes("msword")) {
+    return extractTextFromWord(base64Data);
+  }
+
+  if (lowerFileName.endsWith(".txt") || lowerMimeType.includes("text/plain")) {
+    try {
+      return Buffer.from(base64Data, "base64").toString("utf-8");
+    } catch {
+      return "";
+    }
+  }
+
+  return "";
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/analyze-resume", async (req, res) => {
     try {
-      const { fileName } = req.body;
+      const { fileName, fileData, mimeType } = req.body;
 
       if (!fileName) {
         return res.status(400).json({ error: "File name is required" });
       }
 
+      const resumeText = await extractTextFromFile(fileData, fileName, mimeType);
+      
+      const hasResumeContent = resumeText && resumeText.trim().length > 50;
+
       const categoriesJson = JSON.stringify(SCORING_CATEGORIES, null, 2);
 
-      const prompt = `You are an expert career advisor specializing in backend development roles. Analyze this resume file named "${fileName}" as if it were a typical backend developer resume.
+      let prompt: string;
 
-Your task is to provide a TRANSPARENT and EXPLAINABLE assessment. Users need to understand exactly WHY they received their score.
+      if (hasResumeContent) {
+        prompt = `You are an expert career advisor specializing in backend development roles. Analyze the following resume content and provide a transparent, explainable assessment.
+
+## RESUME CONTENT:
+${resumeText.substring(0, 8000)}
 
 ## SCORING CATEGORIES (evaluate each separately):
 ${categoriesJson}
@@ -63,8 +133,8 @@ ${categoriesJson}
 ## ASSESSMENT REQUIREMENTS:
 
 For EACH category above, provide:
-1. A score out of the maximum points
-2. 1-2 specific findings from the resume that justify the score
+1. A score out of the maximum points based on evidence found in the resume
+2. 1-2 specific findings FROM THE RESUME that justify the score
 
 The total score is the sum of all category scores (max 100).
 
@@ -79,57 +149,57 @@ The total score is the sum of all category scores (max 100).
       "score": <0-20>,
       "maxScore": 20,
       "description": "Proficiency in backend languages like Python, Java, Node.js, Go, or similar",
-      "findings": ["Specific finding 1", "Specific finding 2"]
+      "findings": ["Specific finding from the resume", "Another specific finding"]
     },
     {
       "name": "Database Skills",
       "score": <0-20>,
       "maxScore": 20,
       "description": "Experience with SQL databases (PostgreSQL, MySQL) and NoSQL systems (MongoDB, Redis)",
-      "findings": ["Specific finding 1", "Specific finding 2"]
+      "findings": ["Specific finding from the resume"]
     },
     {
       "name": "API Design",
       "score": <0-15>,
       "maxScore": 15,
       "description": "Knowledge of REST principles, GraphQL, and API best practices",
-      "findings": ["Specific finding 1"]
+      "findings": ["Specific finding from the resume"]
     },
     {
       "name": "DevOps & Cloud",
       "score": <0-15>,
       "maxScore": 15,
       "description": "Familiarity with cloud platforms (AWS, GCP, Azure), Docker, and CI/CD",
-      "findings": ["Specific finding 1"]
+      "findings": ["Specific finding from the resume"]
     },
     {
       "name": "System Design",
       "score": <0-15>,
       "maxScore": 15,
       "description": "Understanding of architecture patterns, scalability, and distributed systems",
-      "findings": ["Specific finding 1"]
+      "findings": ["Specific finding from the resume"]
     },
     {
       "name": "Professional Experience",
       "score": <0-15>,
       "maxScore": 15,
       "description": "Relevant work experience, projects, and contributions that demonstrate practical application",
-      "findings": ["Specific finding 1"]
+      "findings": ["Specific finding from the resume"]
     }
   ],
   "strengths": [
-    "<Strength 1 - must reference which category it relates to>",
-    "<Strength 2 - must reference which category it relates to>",
-    "<Strength 3 - must reference which category it relates to>"
+    "<Strength 1 - cite specific evidence from the resume and which category>",
+    "<Strength 2 - cite specific evidence from the resume and which category>",
+    "<Strength 3 - cite specific evidence from the resume and which category>"
   ],
   "gaps": [
-    "<Gap 1 - must explain what expectation wasn't met>",
-    "<Gap 2 - must explain what expectation wasn't met>"
+    "<Gap 1 - what expectation wasn't demonstrated in the resume>",
+    "<Gap 2 - what expectation wasn't demonstrated in the resume>"
   ],
   "actions": [
-    "<Action 1 - specific, actionable step tied to a gap>",
-    "<Action 2 - specific, actionable step tied to a gap>",
-    "<Action 3 - specific, actionable step tied to a gap>"
+    "<Action 1 - specific step to address a gap>",
+    "<Action 2 - specific step to address a gap>",
+    "<Action 3 - specific step to address a gap>"
   ]
 }
 
@@ -140,13 +210,87 @@ The total score is the sum of all category scores (max 100).
 - Strong (76-100): Excellent skills, leadership potential
 
 ## IMPORTANT RULES:
-1. Strengths must clearly connect to high-scoring categories
-2. Gaps must explain what role expectation wasn't demonstrated
-3. Actions must be specific steps to address identified gaps
-4. Findings must be concrete observations, not generic statements
-5. Make the assessment feel personalized and constructive
+1. Base ALL findings on actual content from the resume
+2. Quote or reference specific technologies, projects, or experiences mentioned
+3. If a skill area has no evidence, give 0-2 points and note "No evidence found"
+4. Make the assessment feel personalized based on what's actually in the resume
 
 Respond ONLY with valid JSON, no markdown or other formatting.`;
+      } else {
+        prompt = `You are an expert career advisor specializing in backend development roles. The user uploaded a resume file named "${fileName}" but we couldn't extract the text content. Please provide a helpful response explaining the situation.
+
+Generate a sample assessment to show what the user would receive, with a note that we couldn't read their actual resume. Use moderate scores.
+
+## SCORING CATEGORIES:
+${categoriesJson}
+
+## RESPONSE FORMAT (JSON only):
+
+{
+  "score": 45,
+  "level": "Developing",
+  "categories": [
+    {
+      "name": "Programming Languages",
+      "score": 10,
+      "maxScore": 20,
+      "description": "Proficiency in backend languages like Python, Java, Node.js, Go, or similar",
+      "findings": ["Unable to extract resume content - please try uploading a different file format"]
+    },
+    {
+      "name": "Database Skills",
+      "score": 8,
+      "maxScore": 20,
+      "description": "Experience with SQL databases (PostgreSQL, MySQL) and NoSQL systems (MongoDB, Redis)",
+      "findings": ["Resume text could not be parsed - try PDF or plain text format"]
+    },
+    {
+      "name": "API Design",
+      "score": 7,
+      "maxScore": 15,
+      "description": "Knowledge of REST principles, GraphQL, and API best practices",
+      "findings": ["File content not readable"]
+    },
+    {
+      "name": "DevOps & Cloud",
+      "score": 5,
+      "maxScore": 15,
+      "description": "Familiarity with cloud platforms (AWS, GCP, Azure), Docker, and CI/CD",
+      "findings": ["Upload a text-based PDF for accurate analysis"]
+    },
+    {
+      "name": "System Design",
+      "score": 6,
+      "maxScore": 15,
+      "description": "Understanding of architecture patterns, scalability, and distributed systems",
+      "findings": ["Could not analyze - ensure PDF is not image-based"]
+    },
+    {
+      "name": "Professional Experience",
+      "score": 9,
+      "maxScore": 15,
+      "description": "Relevant work experience, projects, and contributions that demonstrate practical application",
+      "findings": ["Re-upload your resume in a supported format for accurate scoring"]
+    }
+  ],
+  "strengths": [
+    "Note: We couldn't read your resume file. This is a sample result.",
+    "Try uploading a text-based PDF (not scanned images) for accurate analysis",
+    "Word documents (.docx) and plain text files also work well"
+  ],
+  "gaps": [
+    "Resume file format issue: The uploaded file couldn't be parsed for text content",
+    "For best results, ensure your PDF contains selectable text, not just images"
+  ],
+  "actions": [
+    "Re-upload your resume as a text-based PDF (created from Word, not scanned)",
+    "Alternatively, upload a .docx Word document or .txt plain text file",
+    "If using a scanned document, try running OCR software first to make the text searchable"
+  ]
+}
+
+Respond ONLY with valid JSON, no markdown or other formatting.`;
+      }
 
       const response = await openai.chat.completions.create({
         model: "gpt-5.2",
@@ -171,14 +315,15 @@ Respond ONLY with valid JSON, no markdown or other formatting.`;
         result = JSON.parse(cleanContent);
       } catch (parseError) {
         console.error("Failed to parse AI response:", content);
-        result = generateFallbackResult();
+        result = generateFallbackResult(hasResumeContent);
       }
 
       if (!validateResult(result)) {
-        result = generateFallbackResult();
+        result = generateFallbackResult(hasResumeContent);
       }
 
       result.scoringMethodology = SCORING_METHODOLOGY;
+      result.resumeParsed = hasResumeContent;
 
       res.json(result);
     } catch (error) {
@@ -203,7 +348,29 @@ function validateResult(result: any): boolean {
   );
 }
 
-function generateFallbackResult() {
+function generateFallbackResult(resumeParsed: boolean) {
+  if (!resumeParsed) {
+    return {
+      score: 0,
+      level: "Early",
+      categories: SCORING_CATEGORIES.map((cat) => ({
+        ...cat,
+        score: 0,
+        findings: ["Could not extract text from the uploaded file"],
+      })),
+      strengths: [
+        "Note: We couldn't read your resume. Please try a different file format."
+      ],
+      gaps: [
+        "Resume file format issue: The uploaded file couldn't be parsed"
+      ],
+      actions: [
+        "Upload a text-based PDF (not a scanned image)",
+        "Try a Word document (.docx) or plain text file (.txt)"
+      ],
+    };
+  }
+
   return {
     score: 48,
     level: "Developing",

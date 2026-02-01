@@ -6,6 +6,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { Feather } from "@expo/vector-icons";
 
@@ -79,9 +80,21 @@ export default function AssessScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
+      let fileData: string | undefined;
+
+      try {
+        const base64Content = await FileSystem.readAsStringAsync(selectedFile.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        fileData = base64Content;
+      } catch (fileError) {
+        console.warn("Could not read file content:", fileError);
+      }
+
       const response = await apiRequest("POST", "/api/analyze-resume", {
         fileName: selectedFile.name,
-        fileUri: selectedFile.uri,
+        fileData: fileData,
+        mimeType: selectedFile.mimeType,
       });
 
       const data = await response.json();
@@ -161,6 +174,18 @@ export default function AssessScreen() {
           </View>
         </Card>
 
+        <Card elevation={1} style={styles.formatCard}>
+          <View style={styles.formatHeader}>
+            <Feather name="file-text" size={16} color={Colors.light.info} />
+            <ThemedText type="small" style={[styles.formatTitle, { color: theme.text }]}>
+              Best file formats for accurate analysis
+            </ThemedText>
+          </View>
+          <ThemedText type="small" style={[styles.formatText, { color: theme.textSecondary }]}>
+            Text-based PDF, Word (.docx), or plain text (.txt). Scanned image PDFs may not be readable.
+          </ThemedText>
+        </Card>
+
         <UploadArea
           fileName={selectedFile?.name}
           onPress={handlePickDocument}
@@ -207,7 +232,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   categoriesCard: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   categoriesHeader: {
     flexDirection: "row",
@@ -234,6 +259,22 @@ const styles = StyleSheet.create({
   categoryChipText: {
     color: Colors.light.primary,
     fontWeight: "500",
+  },
+  formatCard: {
+    marginBottom: Spacing.xl,
+    padding: Spacing.md,
+  },
+  formatHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  formatTitle: {
+    fontWeight: "600",
+  },
+  formatText: {
+    lineHeight: 20,
   },
   privacyNote: {
     flexDirection: "row",
