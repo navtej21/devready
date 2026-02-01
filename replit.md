@@ -54,7 +54,9 @@ Expandable explainer that covers:
 │   │   ├── UploadArea.tsx     # Resume upload component
 │   │   ├── LoadingOverlay.tsx # Analysis loading state
 │   │   ├── FocusAreaCard.tsx  # Prioritized improvement area with actions
-│   │   └── TopPriorityCard.tsx # Highlight for #1 focus area
+│   │   ├── TopPriorityCard.tsx # Highlight for #1 focus area
+│   │   ├── ProgressSummary.tsx # Score trend and journey stats
+│   │   └── CategoryProgress.tsx # Category-level improvement tracking
 │   ├── screens/               # App screens
 │   │   ├── HomeScreen.tsx     # Dashboard with score overview
 │   │   ├── AssessScreen.tsx   # Resume upload with category preview
@@ -63,7 +65,8 @@ Expandable explainer that covers:
 │   │   └── HistoryScreen.tsx  # Past assessments list
 │   ├── navigation/            # React Navigation setup
 │   ├── constants/theme.ts     # Design tokens and colors
-│   └── lib/storage.ts         # AsyncStorage utilities with CategoryScore type
+│   ├── lib/storage.ts         # AsyncStorage utilities with CategoryScore type
+│   └── lib/progress.ts        # Progress calculation utilities
 ├── server/                    # Express backend
 │   ├── routes.ts              # API with category-based scoring
 │   └── index.ts               # Server setup
@@ -164,6 +167,7 @@ Distinguishes between:
 
 ## Recent Changes
 
+- **v1.4.0 - Progress Tracking**: Track readiness evolution over time with score trends, category-level improvements, visual timeline on History screen
 - **v1.3.0 - Guided Improvement**: Added prioritized focus areas with effort/impact indicators, TopPriorityCard for Home screen, FocusAreaCard with expandable action steps
 - **v1.2.0 - PDF Parsing**: Resume text extraction from PDF/Word/text files, personalized findings citing actual resume content
 - **v1.1.0 - Transparency**: Score breakdown by 6 categories, HowWeAssess explainer, category-specific findings
