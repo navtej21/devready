@@ -2,21 +2,42 @@
 
 ## Overview
 
-DevReady is a mobile application that helps developers understand their career readiness compared to role expectations. It analyzes resumes and provides personalized feedback for Backend Developer positions.
+DevReady is a mobile application that helps developers understand their career readiness compared to role expectations. It analyzes resumes and provides personalized, transparent feedback for Backend Developer positions.
 
 ## Key Features
 
 - **Resume Analysis**: Upload your resume to get a personalized readiness assessment
 - **Readiness Score**: 0-100 score with levels (Early, Developing, Interview-Ready, Strong)
-- **Strengths & Gaps**: Clear breakdown of what you're doing well and what to improve
+- **Transparent Scoring**: See exactly how each skill category contributes to your score
+- **Strengths & Gaps**: Clear breakdown tied to specific role expectations
 - **Actionable Feedback**: Specific next steps to improve your profile
-- **Private by Design**: No public leaderboards or comparisons
+- **Private by Design**: No public leaderboards, resume data not stored
+
+## Transparency Features
+
+The app emphasizes explainability so users understand WHY they received their score:
+
+### Score Breakdown by Category
+Each assessment shows points earned across 6 skill areas:
+- **Programming Languages** (20 pts): Python, Java, Node.js, Go, etc.
+- **Database Skills** (20 pts): SQL and NoSQL experience
+- **API Design** (15 pts): REST, GraphQL, best practices
+- **DevOps & Cloud** (15 pts): AWS/GCP/Azure, Docker, CI/CD
+- **System Design** (15 pts): Architecture, scalability, distributed systems
+- **Professional Experience** (15 pts): Projects, contributions, work history
+
+### How We Assess Section
+Expandable explainer that covers:
+- Role-based expectations methodology
+- Readiness level definitions
+- How strengths and gaps are identified
+- Privacy commitment
 
 ## Tech Stack
 
 - **Frontend**: React Native with Expo
 - **Backend**: Express.js with TypeScript
-- **AI**: OpenAI (via Replit AI Integrations) for resume analysis
+- **AI**: OpenAI GPT (via Replit AI Integrations) for resume analysis
 - **Storage**: AsyncStorage for local data persistence
 - **Styling**: Custom theme with Montserrat & Inter fonts
 
@@ -26,30 +47,31 @@ DevReady is a mobile application that helps developers understand their career r
 ├── client/                    # React Native Expo app
 │   ├── components/            # Reusable UI components
 │   │   ├── ScoreRing.tsx      # Animated circular score display
+│   │   ├── ScoreBreakdown.tsx # Category-by-category score explanation
+│   │   ├── HowWeAssess.tsx    # Methodology explainer component
 │   │   ├── FeedbackItem.tsx   # Strength/gap/action item display
 │   │   ├── StatCard.tsx       # Quick stat cards
 │   │   ├── UploadArea.tsx     # Resume upload component
 │   │   └── LoadingOverlay.tsx # Analysis loading state
 │   ├── screens/               # App screens
 │   │   ├── HomeScreen.tsx     # Dashboard with score overview
-│   │   ├── AssessScreen.tsx   # Resume upload and analysis
-│   │   ├── ResultsScreen.tsx  # Detailed assessment results
+│   │   ├── AssessScreen.tsx   # Resume upload with category preview
+│   │   ├── ResultsScreen.tsx  # Detailed transparent results
 │   │   ├── ProfileScreen.tsx  # User settings and history
 │   │   └── HistoryScreen.tsx  # Past assessments list
 │   ├── navigation/            # React Navigation setup
 │   ├── constants/theme.ts     # Design tokens and colors
-│   └── lib/storage.ts         # AsyncStorage utilities
+│   └── lib/storage.ts         # AsyncStorage utilities with CategoryScore type
 ├── server/                    # Express backend
-│   ├── routes.ts              # API endpoints including resume analysis
+│   ├── routes.ts              # API with category-based scoring
 │   └── index.ts               # Server setup
-├── assets/images/             # App icons and illustrations
 └── design_guidelines.md       # Design specifications
 ```
 
 ## API Endpoints
 
 ### POST /api/analyze-resume
-Analyzes a resume and returns readiness assessment.
+Analyzes a resume and returns transparent readiness assessment.
 
 **Request Body:**
 ```json
@@ -63,9 +85,19 @@ Analyzes a resume and returns readiness assessment.
 {
   "score": 65,
   "level": "Interview-Ready",
-  "strengths": ["..."],
-  "gaps": ["..."],
-  "actions": ["..."]
+  "categories": [
+    {
+      "name": "Programming Languages",
+      "score": 14,
+      "maxScore": 20,
+      "description": "Proficiency in backend languages...",
+      "findings": ["Shows Python experience", "Node.js projects visible"]
+    }
+  ],
+  "strengths": ["Programming Languages: Strong Python skills..."],
+  "gaps": ["Database Skills: Limited NoSQL experience..."],
+  "actions": ["Build a MongoDB project..."],
+  "scoringMethodology": "Your readiness score is calculated..."
 }
 ```
 
@@ -97,8 +129,9 @@ Users can test the app by:
 
 ## Recent Changes
 
-- Initial MVP implementation with full assessment workflow
-- Added OpenAI integration for resume analysis
-- Implemented local storage for assessment history
-- Created animated score ring component
-- Built 3-tab navigation (Home, Assess, Profile)
+- Added transparent score breakdown by 6 skill categories
+- Created ScoreBreakdown component with expandable category details
+- Added HowWeAssess explainer section to Results screen
+- Updated Assess screen to show "What We Evaluate" category preview
+- Enhanced backend prompt for category-specific findings and explanations
+- Strengths/gaps now reference which role expectation they relate to
