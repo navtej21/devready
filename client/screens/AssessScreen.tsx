@@ -178,13 +178,13 @@ export default function AssessScreen() {
 
         <Card elevation={1} style={styles.formatCard}>
           <View style={styles.formatHeader}>
-            <Feather name="file-text" size={16} color={Colors.light.info} />
+            <Feather name="file-text" size={16} color={Colors.light.success} />
             <ThemedText type="small" style={[styles.formatTitle, { color: theme.text }]}>
-              Best file formats for accurate analysis
+              Recommended: Word documents (.docx)
             </ThemedText>
           </View>
           <ThemedText type="small" style={[styles.formatText, { color: theme.textSecondary }]}>
-            Text-based PDF, Word (.docx), or plain text (.txt). Scanned image PDFs may not be readable.
+            Word files are most reliable for text extraction. PDFs work if text-based, but scanned images cannot be read.
           </ThemedText>
         </Card>
 

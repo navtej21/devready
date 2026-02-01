@@ -78,7 +78,7 @@ export function UploadArea({ fileName, onPress, disabled }: UploadAreaProps) {
         type="small"
         style={[styles.subtitle, { color: theme.textSecondary }]}
       >
-        {hasFile ? fileName : "Tap to select a PDF or document file"}
+        {hasFile ? fileName : "Word documents (.docx) recommended"}
       </ThemedText>
     </AnimatedPressable>
   );
