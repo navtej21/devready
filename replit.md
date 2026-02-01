@@ -52,7 +52,9 @@ Expandable explainer that covers:
 │   │   ├── FeedbackItem.tsx   # Strength/gap/action item display
 │   │   ├── StatCard.tsx       # Quick stat cards
 │   │   ├── UploadArea.tsx     # Resume upload component
-│   │   └── LoadingOverlay.tsx # Analysis loading state
+│   │   ├── LoadingOverlay.tsx # Analysis loading state
+│   │   ├── FocusAreaCard.tsx  # Prioritized improvement area with actions
+│   │   └── TopPriorityCard.tsx # Highlight for #1 focus area
 │   ├── screens/               # App screens
 │   │   ├── HomeScreen.tsx     # Dashboard with score overview
 │   │   ├── AssessScreen.tsx   # Resume upload with category preview
@@ -97,6 +99,20 @@ Analyzes a resume and returns transparent readiness assessment.
   "strengths": ["Programming Languages: Strong Python skills..."],
   "gaps": ["Database Skills: Limited NoSQL experience..."],
   "actions": ["Build a MongoDB project..."],
+  "focusAreas": [
+    {
+      "category": "Database Skills",
+      "priority": "high",
+      "title": "Build NoSQL Experience",
+      "description": "NoSQL databases are used in 70% of modern backend systems...",
+      "effort": "quick-win",
+      "actions": ["Complete MongoDB University course", "Add MongoDB to a project"]
+    }
+  ],
+  "topPriority": {
+    "title": "Build NoSQL Experience",
+    "reason": "Highest-impact gap achievable in 2-4 weeks"
+  },
   "scoringMethodology": "Your readiness score is calculated..."
 }
 ```
@@ -127,11 +143,27 @@ Users can test the app by:
 - Interview-Ready (51-75): #2D6A4F
 - Strong (76-100): #10B981
 
+## Guided Improvement Features (v1.3.0)
+
+The app now helps users answer "What should I focus on next?" with:
+
+### Focus Areas
+Prioritized improvement plan with 2-3 actionable areas:
+- **Priority Level**: High, Medium, or Low impact on readiness
+- **Effort Estimate**: Quick-win (1-4 weeks), Medium-term (1-3 months), Long-term (3+ months)
+- **Specific Actions**: 2-3 concrete steps for each area
+
+### Top Priority Highlight
+The single most impactful thing to focus on first, prominently displayed on both Home and Results screens with clear reasoning.
+
+### Quick Wins vs Long-Term Growth
+Distinguishes between:
+- Quick wins that can be achieved in weeks
+- Medium-term goals requiring 1-3 months
+- Long-term growth areas needing sustained effort
+
 ## Recent Changes
 
-- Added transparent score breakdown by 6 skill categories
-- Created ScoreBreakdown component with expandable category details
-- Added HowWeAssess explainer section to Results screen
-- Updated Assess screen to show "What We Evaluate" category preview
-- Enhanced backend prompt for category-specific findings and explanations
-- Strengths/gaps now reference which role expectation they relate to
+- **v1.3.0 - Guided Improvement**: Added prioritized focus areas with effort/impact indicators, TopPriorityCard for Home screen, FocusAreaCard with expandable action steps
+- **v1.2.0 - PDF Parsing**: Resume text extraction from PDF/Word/text files, personalized findings citing actual resume content
+- **v1.1.0 - Transparency**: Score breakdown by 6 categories, HowWeAssess explainer, category-specific findings
